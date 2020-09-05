@@ -7,7 +7,7 @@
 //
 import Foundation
 
-public final class Wallet {
+@objc public final class  Wallet :NSObject {
     
     public let privateKey: PrivateKey
     public let coin: Coin
@@ -48,6 +48,71 @@ public final class Wallet {
         return hash
     }
     
+    @objc class public func generateBitcoinAccount() -> [String:String] {
+        let mnemonic = Mnemonic.create()
+        let seed = Mnemonic.createSeed(mnemonic: mnemonic)
+        let wallet = Wallet(seed: seed, coin: .bitcoin)
+        let account = wallet.generateAccount()
+        return ["mnemonicKey":mnemonic,"addressKey":account.address,"privateKey":account.rawPrivateKey]
+    }
+
+    @objc class public func generateETHAccount() -> [String:String] {
+        let mnemonic = Mnemonic.create()
+        let seed = Mnemonic.createSeed(mnemonic: mnemonic)
+        let wallet = Wallet(seed: seed, coin: .ethereum)
+        let account = wallet.generateAccount()
+        return ["mnemonicKey":mnemonic,"addressKey":account.address,"privateKey":account.rawPrivateKey]
+    }
+
+    @objc class public func importETHAccountWithPriateKey(at privateKeyStr:String) -> [String:String] {
+        if privateKeyStr.count < 40 {
+           return ["error":"私钥长度不够"];
+        }
+        let privateKey = PrivateKey(pk: privateKeyStr, coin: .ethereum)
+        return ["mnemonicKey":"","addressKey":privateKey!.publicKey.address,"privateKey":privateKeyStr]
+    }
+
+    @objc class public func importBitcoinAccountWithPriateKey(at privateKeyStr:String) -> [String:String] {
+        if privateKeyStr.count < 40 {
+           return ["error":"私钥长度不够"];
+        }
+        let privateKey = PrivateKey(pk: privateKeyStr, coin: .bitcoin)
+        return ["mnemonicKey":"","addressKey":privateKey!.publicKey.address,"privateKey":privateKeyStr]
+    }
+
+    @objc class public func importETHAccountWithMnemonic(at mnemonic:String) -> [String:String] {
+        let mnemonicCount = mnemonic.components(separatedBy: " ")
+        if mnemonicCount.count < 12 {
+            return ["error":"助记词个数不够"];
+        }
+        for (index) in mnemonicCount.enumerated() {
+            let word:String = index.element
+            if word.count == 0 {
+               return ["error":"助记词长度不对"];
+            }
+        }
+        let seed = Mnemonic.createSeed(mnemonic: mnemonic)
+        let wallet = Wallet(seed: seed, coin: .ethereum)
+        let account = wallet.generateAccount()
+        return ["mnemonicKey":mnemonic,"addressKey":account.address,"privateKey":account.rawPrivateKey]
+    }
+
+    @objc class public func importBitcoinAccountWithMnemonic(at mnemonic:String) -> [String:String] {
+        let mnemonicCount = mnemonic.components(separatedBy: " ")
+        if mnemonicCount.count < 12 {
+            return ["error":"助记词个数不够"];
+        }
+        for (index) in mnemonicCount.enumerated() {
+            let word:String = index.element
+            if word.count == 0 {
+               return ["error":"助记词长度不对"];
+            }
+        }
+        let seed = Mnemonic.createSeed(mnemonic: mnemonic)
+        let wallet = Wallet(seed: seed, coin: .bitcoin)
+        let account = wallet.generateAccount()
+        return ["mnemonicKey":mnemonic,"addressKey":account.address,"privateKey":account.rawPrivateKey]
+    }
     //MARK: - Private
     //https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
     private var bip44PrivateKey:PrivateKey {
